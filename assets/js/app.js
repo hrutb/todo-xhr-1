@@ -9,6 +9,9 @@ const completedControl= document.getElementById('completed');
 const addTodo = document.getElementById('addTodo');
 const updateTodo = document.getElementById('updateTodo');
 
+const spinner = document.getElementById('spinner');
+
+
 
 let todoArr = [];
 function snackbar(msg,icon){ 
@@ -21,6 +24,7 @@ function snackbar(msg,icon){
 
 
 function fetchTodo(){ 
+         spinner.classList.remove('d-none');
         let xhr = new XMLHttpRequest() ; 
         xhr.open('GET', todo_url);
         xhr.send(null);
@@ -31,8 +35,10 @@ function fetchTodo(){
                     todoArr =JSON.parse(xhr.response); 
                
                     createTodo(todoArr)     
-             
-                }else{ 
+                 spinner.classList.add('d-none');    
+              }else{ 
+                 spinner.classList.add('d-none');    
+
                  snackbar('Api is failed...!!','error');
              }
             
@@ -88,14 +94,18 @@ function onRemove(ele){
             confirmButtonText: "Yes, delete it!"
             }).then((result) => {
             if (result.isConfirmed){ 
+             
                 
                 let xhr= new XMLHttpRequest() ; 
                  xhr.open('DELETE', removeUrl);
                  xhr.send(null); 
                  
                  xhr.onload =function(){  
-                      ele.closest('.col-md-6').remove(); 
+                   
+                    ele.closest('.col-md-6').remove(); 
+                   
                  }
+
                }
             });
 
@@ -113,15 +123,18 @@ function onSubmit(eve){
       }
 
       
-      
+         spinner.classList.remove('d-none');
+       
       let xhr= new XMLHttpRequest() ; 
         xhr.open('POST', todo_url);
 
         xhr.send(JSON.stringify(newTodo));
         xhr.onload = function(){ 
           if(xhr.status>=200 && xhr.status<=299){ 
-              let res = JSON.parse(xhr.response);    
-            let div= document.getElementById('div');
+              let res = JSON.parse(xhr.response);     
+               console.log(res);
+               
+            let div= document.createElement('div');
                   div.className=  'col-md-6' ; 
                   div.id = res.id;
                   div.innerHTML =`<div class="card">
@@ -141,7 +154,12 @@ function onSubmit(eve){
                                 </div>`
 
                      todoContainer.prepend(div);
+                 spinner.classList.add('d-none');
+               snackbar( 'Todo submitted successfully ', 'success');
+                 
              }else{ 
+         spinner.classList.add('d-none');
+
                snackbar('failed to submit todo', 'error');
              }
         }
@@ -160,6 +178,9 @@ function onEdit(ele){
        localStorage.setItem('EditId', editId);
       let editUrl = `${base_url}/todos/${editId}`;
       
+
+         spinner.classList.remove('d-none');
+
       let xhr = new XMLHttpRequest() ;
             xhr.open('GET',editUrl);
 
@@ -175,9 +196,11 @@ function onEdit(ele){
                 
                 addTodo.classList.add('d-none');
                 updateTodo.classList.remove('d-none')
+               spinner.classList.add('d-none');
                 
                 }else{ 
-                     snackbar('failed to edit todo...!', 'error');
+                    spinner.classList.add('d-none');
+                    snackbar('failed to edit todo...!', 'error');
                   }
             }
 }
@@ -193,6 +216,8 @@ function onUpdate(){
           title:titleControl.value , 
           completed:completedControl.value
       }
+         spinner.classList.remove('d-none');
+
       
       let xhr= new XMLHttpRequest() ; 
           xhr.open('PATCH', updateUrl);
@@ -219,7 +244,12 @@ function onUpdate(){
                 addTodo.classList.add('d-none');
                 updateTodo.classList.remove('d-none')
                 todoForm.reset(); 
+               spinner.classList.add('d-none');
+
+             snackbar('todo udpated successfully...!', 'success');            
           }else{ 
+               spinner.classList.add('d-none');
+
              snackbar('Failed to udpate...!', 'error')
           }
        } 
