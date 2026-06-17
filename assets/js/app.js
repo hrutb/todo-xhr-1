@@ -156,7 +156,7 @@ function onSubmit(eve){
                      todoContainer.prepend(div);
                  spinner.classList.add('d-none');
                snackbar( 'Todo submitted successfully ', 'success');
-                 
+                  todoForm.reset() ;
              }else{ 
          spinner.classList.add('d-none');
 
@@ -173,14 +173,13 @@ function onSubmit(eve){
 
 
 
-function onEdit(ele){
-      let editId= ele.closest('.col-md-6').id; 
+function onEdit(){
+      let editId= ele.closest('.col-md-6').id
        localStorage.setItem('EditId', editId);
       let editUrl = `${base_url}/todos/${editId}`;
       
 
          spinner.classList.remove('d-none');
-
       let xhr = new XMLHttpRequest() ;
             xhr.open('GET',editUrl);
 
@@ -191,12 +190,14 @@ function onEdit(ele){
                 if(xhr.status>=200 && xhr.status<=299){
                 let editObj=JSON.parse(xhr.response);
                     
-                    titleControl.value = editObj.title ;
-                    completedControl.value = editObj.completed ;
+                  titleControl.value = editObj.title ;
+                  completedControl.value = editObj.completed ? 'Yes': 'No';
                 
-                addTodo.classList.add('d-none');
-                updateTodo.classList.remove('d-none')
-               spinner.classList.add('d-none');
+                  addTodo.classList.add('d-none');
+                  updateTodo.classList.remove('d-none')
+                  window.scrollTo({top:0 ,behavior:'smooth'})
+
+                  spinner.classList.add('d-none');
                 
                 }else{ 
                     spinner.classList.add('d-none');
@@ -241,26 +242,42 @@ function onUpdate(){
 
                                     </div>
                                 </div>`
-                addTodo.classList.add('d-none');
-                updateTodo.classList.remove('d-none')
+          
+                addTodo.classList.remove('d-none');
+                updateTodo.classList.add('d-none')
+             
                 todoForm.reset(); 
+             
+                spinner.classList.add('d-none');
+
+
+                snackbar('todo udpated successfully...!', 'success');            
+                  div.scrollIntoView({behavior:'smooth', block:'center'})          
+              }else{ 
                spinner.classList.add('d-none');
 
-             snackbar('todo udpated successfully...!', 'success');            
-          }else{ 
-               spinner.classList.add('d-none');
-
-             snackbar('Failed to udpate...!', 'error')
-          }
+               snackbar('Failed to udpate...!', 'error')
+             }
        } 
 
     }
+
+
+ function keyHandler(eve){ 
+        if(eve.key==='Enter'){ 
+             eve.preventDefault(); 
+             onUpdate();
+        }else{ 
+            onSubmit(); 
+        }
+ }
+
 
 
 
 todoForm.addEventListener('submit', onSubmit)
 updateTodo.addEventListener('click', onUpdate);
 
-
+todoForm.addEventListener('keydown', keyHandler)
 
 
