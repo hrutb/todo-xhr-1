@@ -220,6 +220,7 @@ function onUpdate(){
       let updateId =localStorage.getItem('EditId');
     
       let updateUrl = `${base_url}/todos/${updateId}`; 
+    
       let updateObj = { 
           title:titleControl.value , 
           completed:completedControl.value
