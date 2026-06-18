@@ -18,7 +18,7 @@ function snackbar(msg,icon){
      swal.fire({
          title:msg,
          icon:icon,
-         timer:3000
+         timer:1500
      })
 }
 
@@ -56,7 +56,7 @@ function createTodo(arr){
       
       arr.forEach((ele)=>{ 
              res += `<div class="col-md-6 mb-4" id=${ele.id}>
-                <div class="card">
+                <div class="card todoCard">
                     <div class="card-body">
                         <h4>Title:${ele.title}</h4>
                          <h5>Status:<span class="badge ${ele.completed ? "badge-success":"badge-danger"}">
@@ -76,6 +76,63 @@ function createTodo(arr){
 
       todoContainer.innerHTML=res ;
     } 
+
+
+
+function onSubmit(eve){ 
+       eve.preventDefault() ; 
+        
+      let newTodo = { 
+            title:titleControl.value , 
+            completed:completedControl.value=== 'true'
+      }
+
+      
+         spinner.classList.remove('d-none');
+       
+      let xhr= new XMLHttpRequest() ; 
+        xhr.open('POST', todo_url);
+
+        xhr.send(JSON.stringify(newTodo));
+        xhr.onload = function(){ 
+          if(xhr.status>=200 && xhr.status<=299){ 
+              let res = JSON.parse(xhr.response);     
+               console.log(res);
+               
+            let div= document.createElement('div');
+                  div.className=  'col-md-6' ; 
+                  div.id = res.id;
+                  div.innerHTML =`<div class="card todoCard">
+                                    <div class="card-body">
+                                        <h4>Title:${newTodo.title}</h4>
+                                        <h5>Status:<span class="badge ${newTodo.completed ? "badge-success":"badge-danger"}">
+                                                    ${newTodo.completed ? 'Completed':'pending'}
+                                                    </span>
+                                        </h5>
+                                    </div>
+                                    
+                                    <div class="card-footer d-flex justify-content-between align-items-center">
+                                        <button onclick="onEdit(this)" class="btn btn-inline-block btn-outline-primary">Edit</button>
+                                        <button onclick="onRemove(this)" class="btn btn-inline-block btn-outline-danger">Delete</button>
+
+                                    </div>
+                                </div>`
+
+                     todoContainer.prepend(div);
+                 spinner.classList.add('d-none');
+               snackbar( 'Todo submitted successfully ', 'success');
+                  todoForm.reset() ;
+             }else{ 
+         spinner.classList.add('d-none');
+
+               snackbar('failed to submit todo', 'error');
+             }
+        }
+
+}
+
+
+
 
 
 function onRemove(ele){ 
@@ -114,66 +171,9 @@ function onRemove(ele){
 
 
 
-function onSubmit(eve){ 
-       eve.preventDefault() ; 
-        
-      let newTodo = { 
-            title:titleControl.value , 
-            completed:completedControl.value
-      }
-
-      
-         spinner.classList.remove('d-none');
-       
-      let xhr= new XMLHttpRequest() ; 
-        xhr.open('POST', todo_url);
-
-        xhr.send(JSON.stringify(newTodo));
-        xhr.onload = function(){ 
-          if(xhr.status>=200 && xhr.status<=299){ 
-              let res = JSON.parse(xhr.response);     
-               console.log(res);
-               
-            let div= document.createElement('div');
-                  div.className=  'col-md-6' ; 
-                  div.id = res.id;
-                  div.innerHTML =`<div class="card">
-                                    <div class="card-body">
-                                        <h4>Title:${newTodo.title}</h4>
-                                        <h5>Status:<span class="badge ${newTodo.completed ? "badge-success":"badge-danger"}">
-                                                    ${newTodo.completed ? 'Completed':'pending'}
-                                                    </span>
-                                        </h5>
-                                    </div>
-                                    
-                                    <div class="card-footer d-flex justify-content-between align-items-center">
-                                        <button onclick="onEdit(this)" class="btn btn-inline-block btn-outline-primary">Edit</button>
-                                        <button onclick="onRemove(this)" class="btn btn-inline-block btn-outline-danger">Delete</button>
-
-                                    </div>
-                                </div>`
-
-                     todoContainer.prepend(div);
-                 spinner.classList.add('d-none');
-               snackbar( 'Todo submitted successfully ', 'success');
-                  todoForm.reset() ;
-             }else{ 
-         spinner.classList.add('d-none');
-
-               snackbar('failed to submit todo', 'error');
-             }
-        }
-
-}
 
 
-
-
-
-
-
-
-function onEdit(){
+function onEdit(ele){
       let editId= ele.closest('.col-md-6').id
        localStorage.setItem('EditId', editId);
       let editUrl = `${base_url}/todos/${editId}`;
@@ -191,13 +191,20 @@ function onEdit(){
                 let editObj=JSON.parse(xhr.response);
                     
                   titleControl.value = editObj.title ;
-                  completedControl.value = editObj.completed ? 'Yes': 'No';
+
+                  if(editObj.completed){
+
+                      completedControl.value = 'Yes';
+                  }else{
+                      completedControl.value = "No";
+                  }
                 
                   addTodo.classList.add('d-none');
                   updateTodo.classList.remove('d-none')
-                  window.scrollTo({top:0 ,behavior:'smooth'})
-
+                  
+                 
                   spinner.classList.add('d-none');
+                  window.scrollTo({top:0,behavior:'smooth'})
                 
                 }else{ 
                     spinner.classList.add('d-none');
@@ -227,7 +234,7 @@ function onUpdate(){
           xhr.onload = function(){ 
             if(xhr.status>=200 && xhr.status<=299){
               let div =document.getElementById(updateId);
-              div.innerHTML = `<div class="card">
+              div.innerHTML = `<div class="card todoCard">
                                     <div class="card-body">
                                         <h4>Title:${updateObj.title}</h4>
                                         <h5>Status:<span class="badge ${updateObj.completed ? "badge-success":"badge-danger"}">
@@ -250,9 +257,16 @@ function onUpdate(){
              
                 spinner.classList.add('d-none');
 
-
                 snackbar('todo udpated successfully...!', 'success');            
-                  div.scrollIntoView({behavior:'smooth', block:'center'})          
+                const card  = div.closest('.card');
+                
+                div.scrollIntoView({behavior:'smooth', block:'center'})  ;
+                   card.classList.add('highlight');
+                  // Fade back to normal after 1 second
+                  setTimeout(() => {
+                        card.classList.remove('highlight');                   
+                },4000);
+                  
               }else{ 
                spinner.classList.add('d-none');
 
@@ -277,6 +291,8 @@ function onUpdate(){
 
 todoForm.addEventListener('submit', onSubmit)
 updateTodo.addEventListener('click', onUpdate);
+
+
 
 todoForm.addEventListener('keydown', keyHandler)
 
